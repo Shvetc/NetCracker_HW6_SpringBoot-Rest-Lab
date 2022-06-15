@@ -1,0 +1,78 @@
+CREATE TABLE public.customer
+(
+    id serial NOT NULL,
+    last_name varchar(50) NOT NULL,
+    region varchar(50) NOT NULL,
+    discount double precision NOT NULL,
+    PRIMARY KEY (id)
+);
+ALTER TABLE public.customer
+    OWNER to postgres;
+
+insert into customer (last_name, region, discount) values
+('Говрилов', 'Сормовский', 15),
+('Ежонков', 'Нижегородский', 10),
+('Швец','Советский', 25),
+('Фомин', 'Ленинский', 8),
+('Докторов','Нижегородский', 15);
+
+CREATE TABLE public.shop
+(
+    id serial NOT NULL,
+    name varchar(50) NOT NULL,
+    region varchar(50) NOT NULL,
+    commission double precision NOT NULL,
+    PRIMARY KEY (id)
+);
+ALTER TABLE public.shop
+    OWNER to postgres;
+
+insert into shop (name, region, commission) values
+('Покровский', 'Сормовский', 3.5),
+('Буквоед', 'Нижегородский', 2.2),
+('Мир грёз', 'Сормовский', 1.3),
+('Читай-Город', 'Советский', 1.5),
+('Литрес', 'Московский', 2.5),
+('The Book', 'Советский', 3);
+
+CREATE TABLE public.book
+(
+    id serial NOT NULL,
+    name varchar(150) NOT NULL,
+    cost double precision NOT NULL,
+    storage varchar(150) NOT NULL,
+    quantity integer NOT NULL,
+    PRIMARY KEY (id)
+);
+ALTER TABLE public.book
+    OWNER to postgres;
+
+insert into book (name, cost, storage, quantity) values
+('Маленький принц', 550, 'Главный склад', 50),
+('Эффективный и современныый С++', 21000, 'Главный склад', 25),
+('Системное программирование в Windows', 6500, 'Второстепенный склад', 7),
+('Мертвые души', 650, 'Главный склад', 23),
+('О дивный новый мир', 800, 'Главный склад', 15),
+('Это пройдет', 3500, 'Главный склад', 3),
+('Небесная механика', 1500, 'Главный склад', 35);
+
+
+CREATE TABLE public.purchase
+(
+    id serial NOT NULL,
+    date date NOT NULL,
+    shop_id integer NOT NULL,
+    customer_id integer NOT NULL,
+    book_id integer NOT NULL,
+    quantity integer NOT NULL,
+    price double precision NOT NULL,
+    PRIMARY KEY (id)
+);
+ALTER TABLE public.purchase
+    OWNER to postgres;
+
+insert into purchase (customer_id, book_id, shop_id, "date", price, quantity) values 
+(1,1,1,'5.06.2022', 8500, 11),
+(2,3,2,'12.06.2022', 13750, 25),
+(4,3,1,'2.06.2022',65000,35);
+
