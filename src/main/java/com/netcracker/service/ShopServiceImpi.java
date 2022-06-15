@@ -1,5 +1,6 @@
 package com.netcracker.service;
 
+import com.netcracker.api.ShopService;
 import com.netcracker.model.Shop;
 import com.netcracker.repository.ShopRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class ShopService {
+public class ShopServiceImpi implements ShopService {
 
     @Autowired
     ShopRepository shopRepository;

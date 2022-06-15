@@ -1,6 +1,7 @@
 package com.netcracker.controller;
 
 import com.netcracker.exception.ResourceNotFoundException;
+import com.netcracker.getEntity.GetEntity;
 import com.netcracker.model.Book;
 import com.netcracker.model.Customer;
 import com.netcracker.model.Purchase;
@@ -31,63 +32,65 @@ public class PurchaseController {
     ShopRepository shopRepository;
 
     @DeleteMapping("/purchase/{id}")
-    public String deletePurchase(@PathVariable(value = "id") Integer id) throws ResourceNotFoundException {
-        purchaseRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Purchase not found with id = " + id));
-        purchaseRepository.deleteById(id);
+    public ResponseEntity<String> deletePurchase(@PathVariable(value = "id") Integer id) throws ResourceNotFoundException {
 
-        return "Purchase with id = " + id + "deleted";
+        Purchase purchase = (Purchase) GetEntity.getEntity(id, purchaseRepository);
+
+        purchaseRepository.deleteById(purchase.getId());
+
+        return ResponseEntity.ok("Purchase with id = " + id + "deleted");
     }
 
     @PatchMapping("/purchase/{id}")
-    public ResponseEntity<Purchase> updatePurchaseInPart(@PathVariable(value = "id") Integer id,
-                                                         @RequestBody Purchase newInfoAboutPurchase) throws ResourceNotFoundException {
-        Purchase purchase = purchaseRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Purchase not found with id = " + id));
+    public ResponseEntity<String> updatePurchaseInPart(@PathVariable(value = "id") Integer id,
+                                                       @RequestBody Purchase newInfoAboutPurchase) throws ResourceNotFoundException {
+        Purchase purchase = (Purchase) GetEntity.getEntity(id, purchaseRepository);
 
         if (newInfoAboutPurchase.getDate() != null)
             purchase.setDate(newInfoAboutPurchase.getDate());
-        if (newInfoAboutPurchase.getPrice() != null)
+
+        if (newInfoAboutPurchase.getPrice() > 0.0)
             purchase.setPrice(newInfoAboutPurchase.getPrice());
-        if (newInfoAboutPurchase.getQuantity() != null)
+
+        if (newInfoAboutPurchase.getQuantity() > 0)
             purchase.setQuantity(newInfoAboutPurchase.getQuantity());
 
         if (newInfoAboutPurchase.getBook() != null) {
             Integer idBook = newInfoAboutPurchase.getBook().getId();
-            Book book = bookRepository.findById(idBook).orElseThrow(
-                    () -> new ResourceNotFoundException("Book not found with id = " + idBook));
+            Book book = (Book) GetEntity.getEntity(idBook, bookRepository);
             purchase.setBook(book);
         }
 
         if (newInfoAboutPurchase.getCustomer() != null) {
             Integer idCustomer = newInfoAboutPurchase.getCustomer().getId();
-            Customer customer = customerRepository.findById(idCustomer).orElseThrow(
-                    () -> new ResourceNotFoundException("Customer not found with id = " + idCustomer));
+            Customer customer = (Customer) GetEntity.getEntity(idCustomer, customerRepository);
             purchase.setCustomer(customer);
         }
 
         if (newInfoAboutPurchase.getShop() != null) {
             Integer idShop = newInfoAboutPurchase.getShop().getId();
-            Shop shop = shopRepository.findById(idShop).orElseThrow(
-                    () -> new ResourceNotFoundException("Shop not found with id = " + idShop));
+            Shop shop = (Shop) GetEntity.getEntity(idShop, shopRepository);
             purchase.setShop(shop);
         }
 
-        final Purchase purchaseUpdated = purchaseRepository.save(purchase);
+        purchaseRepository.save(purchase);
 
-        return ResponseEntity.ok(purchaseUpdated);
+        return ResponseEntity.ok("Purchase with id = " + id + "has updated");
     }
 
     @PostMapping("/purchase")
-    public Purchase addPurchase(@RequestBody Purchase purchase) throws ResourceNotFoundException {
-        purchase.setBook(bookRepository.findById(purchase.getBook().getId()).orElseThrow(
-                () -> new ResourceNotFoundException("Book not found with id = " + purchase.getBook().getId())));
-        purchase.setCustomer(customerRepository.findById(purchase.getCustomer().getId()).orElseThrow(
-                () -> new ResourceNotFoundException("Customer not found with id = " + purchase.getCustomer().getId())));
-        purchase.setShop((shopRepository.findById(purchase.getShop().getId()).orElseThrow(
-                () -> new ResourceNotFoundException("Shop not found with id = " + purchase.getShop().getId()))));
+    public ResponseEntity<String> addPurchase(@RequestBody Purchase purchase) throws ResourceNotFoundException {
+        Integer idBook = purchase.getBook().getId();
+        Integer idCustomer = purchase.getCustomer().getId();
+        Integer idShop = purchase.getShop().getId();
 
-        return purchaseRepository.save(purchase);
+        purchase.setBook((Book) GetEntity.getEntity(idBook, bookRepository));
+        purchase.setCustomer((Customer) GetEntity.getEntity(idCustomer, customerRepository));
+        purchase.setShop((Shop) GetEntity.getEntity(idShop, shopRepository));
+
+        purchaseRepository.save(purchase);
+
+        return ResponseEntity.ok("Purchase with customer :" + purchase.getCustomer() + "has added");
     }
 
     @GetMapping("/purchase")
@@ -99,18 +102,15 @@ public class PurchaseController {
     public ResponseEntity<Purchase> getPurchaseById(@PathVariable(value = "id") Integer id)
             throws ResourceNotFoundException {
 
-        Purchase purchase = purchaseRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Purchase not found with id = " + id)
-        );
+        Purchase purchase = (Purchase) GetEntity.getEntity(id, purchaseRepository);
 
         return ResponseEntity.ok().body(purchase);
     }
 
     @PutMapping("/purchase/{id}")
-    public ResponseEntity<Purchase> updatePurchase(@PathVariable(value = "id") Integer id,
-                                                   @RequestBody Purchase newInfoAboutPurchase) throws ResourceNotFoundException {
-        Purchase purchase = purchaseRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Purchase not found with id = " + id));
+    public ResponseEntity<String> updatePurchase(@PathVariable(value = "id") Integer id,
+                                                 @RequestBody Purchase newInfoAboutPurchase) throws ResourceNotFoundException {
+        Purchase purchase = (Purchase) GetEntity.getEntity(id, purchaseRepository);
 
         purchase.setDate(newInfoAboutPurchase.getDate());
         purchase.setBook(newInfoAboutPurchase.getBook());
@@ -119,9 +119,9 @@ public class PurchaseController {
         purchase.setPrice(newInfoAboutPurchase.getPrice());
         purchase.setQuantity(newInfoAboutPurchase.getQuantity());
 
-        final Purchase purchaseUpdated = purchaseRepository.save(purchase);
+        purchaseRepository.save(purchase);
 
-        return ResponseEntity.ok(purchaseUpdated);
+        return ResponseEntity.ok("Purchase with Customer =" + purchase.getCustomer() + "has added");
     }
 
     @GetMapping("/purchase/get_different_months")
@@ -130,7 +130,7 @@ public class PurchaseController {
     }
 
     @GetMapping("/purchase/get_lastnames_and_shops")
-    public  List<List<String>> getLastnamesAndShops() {
+    public List<List<String>> getLastnamesAndShops() {
         return purchaseRepository.getCustomersLastNamesAndShopsNames();
     }
 
@@ -145,7 +145,7 @@ public class PurchaseController {
     }
 
     @GetMapping("/purchase/get_info_about_purchase_in_the_month")
-    public List<List<String>> getReceivePurchaseInfoAfterMarch(@RequestParam  Integer indMonth) {
+    public List<List<String>> getReceivePurchaseInfoAfterMarch(@RequestParam Integer indMonth) {
         return purchaseRepository.getReceivePurchaseInfoAfterMonth(indMonth);
     }
 

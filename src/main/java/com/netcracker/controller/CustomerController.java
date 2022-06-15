@@ -1,9 +1,10 @@
 package com.netcracker.controller;
 
 import com.netcracker.exception.ResourceNotFoundException;
+import com.netcracker.getEntity.GetEntity;
 import com.netcracker.model.Customer;
 import com.netcracker.repository.CustomerRepository;
-import com.netcracker.service.CustomerService;
+import com.netcracker.service.CustomerServiceImpi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,38 +19,43 @@ public class CustomerController {
     CustomerRepository customerRepository;
 
     @Autowired
-    CustomerService customerService;
+    CustomerServiceImpi customerServiceImpi;
 
     @PostMapping("/customer")
-    public Customer addCustomer(@RequestBody Customer customer) {
-        return customerRepository.save(customer);
+    public ResponseEntity<String> addCustomer(@RequestBody Customer customer) {
+        customerRepository.save(customer);
+
+        return ResponseEntity.ok("Customer with name =" + customer.getLastName() + "has added");
     }
 
     @DeleteMapping("/customer/{id}")
     public ResponseEntity<String> deleteCustomer(@PathVariable(value = "id") Integer id) throws ResourceNotFoundException {
-        customerRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Customer not found  with id = " + id));
-        customerRepository.deleteById(id);
+        Customer customer = (Customer) GetEntity.getEntity(id, customerRepository);
 
-        return ResponseEntity.ok("Customer with id = " + id + " deleted");
+        customerRepository.delete(customer);
+
+        return ResponseEntity.ok("Customer with id = " + id + "has deleted");
     }
 
     @PatchMapping("/customer/{id}")
-    public ResponseEntity<Customer> updateCustomerInPart(@PathVariable(value = "id") Integer id,
-                                                         @RequestBody Customer newInfoAboutCustomer) throws ResourceNotFoundException {
-        Customer customer = customerRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Customer not found with id = " + id));
-
-        if (newInfoAboutCustomer.getLastName() != null)
+    public ResponseEntity<String> updateCustomerInPart(@PathVariable(value = "id") Integer id,
+                                                       @RequestBody Customer newInfoAboutCustomer) throws ResourceNotFoundException {
+        Customer customer = (Customer) GetEntity.getEntity(id, customerRepository);
+        if (newInfoAboutCustomer.getLastName() != null) {
             customer.setLastName(newInfoAboutCustomer.getLastName());
-        if (newInfoAboutCustomer.getDiscount() != null)
+        }
+
+        if (newInfoAboutCustomer.getDiscount() > 0.0) {
             customer.setDiscount(newInfoAboutCustomer.getDiscount());
-        if (newInfoAboutCustomer.getRegion() != null)
+        }
+
+        if (newInfoAboutCustomer.getRegion() != null) {
             customer.setRegion(newInfoAboutCustomer.getRegion());
+        }
 
-        final Customer updatedCustomer = customerRepository.save(customer);
+        customerRepository.save(customer);
 
-        return ResponseEntity.ok(updatedCustomer);
+        return ResponseEntity.ok("The customer with id = " + customer.getId() + "has updated");
     }
 
     @GetMapping("/customer")
@@ -61,26 +67,21 @@ public class CustomerController {
     public ResponseEntity<Customer> getCustomerById(@PathVariable(value = "id") Integer id)
             throws ResourceNotFoundException {
 
-        Customer customer = customerRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Customer not found with id = " + id)
-        );
-
-        return ResponseEntity.ok(customer);
+        return ResponseEntity.ok((Customer) GetEntity.getEntity(id, customerRepository));
     }
 
     @PutMapping("/customer/{id}")
-    public ResponseEntity<Customer> fullOverwritingCustomer(@PathVariable(value = "id") Integer id,
-                                                            @RequestBody Customer newInfoAboutCustomer) throws ResourceNotFoundException {
-        Customer customer = customerRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Customer not found with id = " + id));
+    public ResponseEntity<String> fullOverwritingCustomer(@PathVariable(value = "id") Integer id,
+                                                          @RequestBody Customer newInfoAboutCustomer) throws ResourceNotFoundException {
+        Customer customer = (Customer) GetEntity.getEntity(id, customerRepository);
 
         customer.setLastName(newInfoAboutCustomer.getLastName());
         customer.setDiscount(newInfoAboutCustomer.getDiscount());
         customer.setRegion(newInfoAboutCustomer.getRegion());
 
-        final Customer updatedCustomer = customerRepository.save(customer);
+        customerRepository.save(customer);
 
-        return ResponseEntity.ok(updatedCustomer);
+        return ResponseEntity.ok("Customer with id = " + id + "has updated");
     }
 
     @GetMapping("/customer/different_regions")
@@ -91,7 +92,7 @@ public class CustomerController {
 
     @GetMapping(value = "/customer/info_for_customers_lived_in_the_current_region")
     public List<String> getLastNameAndDiscountOfCustomersLivedInTheCurrentRegion(@RequestParam String reg) {
-        return customerService.getLastNameAndDiscountOfCustomersLivedInTheCurrentRegion(reg);
+        return customerServiceImpi.getLastNameAndDiscountOfCustomersLivedInTheCurrentRegion(reg);
     }
 
 }

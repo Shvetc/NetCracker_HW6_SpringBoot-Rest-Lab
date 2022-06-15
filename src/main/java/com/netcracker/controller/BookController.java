@@ -1,9 +1,10 @@
 package com.netcracker.controller;
 
 import com.netcracker.exception.ResourceNotFoundException;
+import com.netcracker.getEntity.GetEntity;
 import com.netcracker.model.Book;
 import com.netcracker.repository.BookRepository;
-import com.netcracker.service.BookService;
+import com.netcracker.service.BookServiceImpi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,41 +19,33 @@ public class BookController {
     BookRepository bookRepository;
 
     @Autowired
-    BookService bookService;
+    BookServiceImpi bookServiceImpi;
 
     @DeleteMapping("/book/{id}")
     public ResponseEntity<String> deleteBook(@PathVariable(value = "id") Integer id) throws ResourceNotFoundException {
-        bookRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Book not found with id = " + id));
-        bookRepository.deleteById(id);
-
+        Book book = (Book) GetEntity.getEntity(id, bookRepository);
+        bookRepository.delete(book);
         return ResponseEntity.ok("Book with id = " + id + "deleted");
     }
 
     @PatchMapping("/book/{id}")
-    public ResponseEntity<Book> updateBookInPart(@PathVariable(value = "id") Integer id,
-                                                 @RequestBody Book newInfoAboutBook) throws ResourceNotFoundException {
-        Book book = bookRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(
-                "Book not found with id =" + id));
+    public ResponseEntity<String> updateBookInPart(@PathVariable(value = "id") Integer id,
+                                                   @RequestBody Book newInfoAboutBook) throws ResourceNotFoundException {
+        Book updatedBook = (Book) GetEntity.getEntity(id, bookRepository);
+        if (newInfoAboutBook.getName() != null) updatedBook.setName(newInfoAboutBook.getName());
+        if (newInfoAboutBook.getCost() > 0.0) updatedBook.setCost(newInfoAboutBook.getCost());
+        if (newInfoAboutBook.getStorage() != null) updatedBook.setStorage(newInfoAboutBook.getStorage());
+        if (newInfoAboutBook.getQuantity() > 0) updatedBook.setQuantity(newInfoAboutBook.getQuantity());
+        bookRepository.save(updatedBook);
 
-
-        if (newInfoAboutBook.getName() != null)
-            book.setName(newInfoAboutBook.getName());
-        if (newInfoAboutBook.getQuantity() != null)
-            book.setQuantity((newInfoAboutBook.getQuantity()));
-        if (newInfoAboutBook.getCost() != null)
-            book.setCost(newInfoAboutBook.getCost());
-        if (newInfoAboutBook.getStorage() != null)
-            book.setStorage(newInfoAboutBook.getStorage());
-
-        final Book updatedBook = bookRepository.save(book);
-
-        return ResponseEntity.ok(updatedBook);
+        return ResponseEntity.ok("The book with id = " + updatedBook.getId() + "is updated");
     }
 
     @PostMapping("/book")
-    public Book addBook(@RequestBody Book book) {
-        return bookRepository.save(book);
+    public ResponseEntity<String> addBook(@RequestBody Book book) {
+        bookRepository.save(book);
+
+        return ResponseEntity.ok("The book with current id = " + book.getId() + "has added");
     }
 
     @GetMapping("/book")
@@ -61,38 +54,28 @@ public class BookController {
     }
 
     @GetMapping("/book/{id}")
-    public ResponseEntity<Book> getBookById(@PathVariable(value = "id") Integer id)
-            throws ResourceNotFoundException {
-
-        Book book = bookRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Book not found with id = " + id)
-        );
-
-        return ResponseEntity.ok().body(book);
+    public ResponseEntity<Book> getBookById(@PathVariable(value = "id") Integer id) throws ResourceNotFoundException {
+        return ResponseEntity.ok((Book)GetEntity.getEntity(id, bookRepository));
     }
 
     @PutMapping("/book/{id}")
-    public ResponseEntity<Book> updateBook(@PathVariable(value = "id") Integer id,
-                                           @RequestBody Book newInfoAboutBook) throws ResourceNotFoundException {
-        Book book = bookRepository.findById(id).orElseThrow(() ->
-                new ResourceNotFoundException("Book not found with id = " + id));
-
+    public ResponseEntity<String> updateBook(@PathVariable(value = "id") Integer id,
+                                             @RequestBody Book newInfoAboutBook) throws ResourceNotFoundException {
+        Book book = (Book)GetEntity.getEntity(id, bookRepository);
         book.copyData(newInfoAboutBook);
+        bookRepository.save(book);
 
-        final Book updatedBook = bookRepository.save(book);
-
-        return ResponseEntity.ok(updatedBook);
+        return ResponseEntity.ok("The book with id =" + book.getId() + "updated");
     }
 
     @GetMapping("/book/different_names_and_prices")
-    public Map<String, Double> getDifferentBookNamesAndPrices(){
-        return  bookService.getDifferentNamesOfBooksAndThemPrice();
+    public Map<String, Double> getDifferentBookNamesAndPrices() {
+        return bookServiceImpi.getDifferentNamesOfBooksAndThemPrice();
     }
 
     @GetMapping("/book/names_prices_by_word_or_price")
     public List<String> getNamesBookAndPricesByWordOrPrice(@RequestParam String word,
-                                                           @RequestParam Double price)
-    {
-        return bookService.getNamesBookAndPricesByWordOrPrice(word, price);
+                                                           @RequestParam Double price) {
+        return bookServiceImpi.getNamesBookAndPricesByWordOrPrice(word, price);
     }
 }

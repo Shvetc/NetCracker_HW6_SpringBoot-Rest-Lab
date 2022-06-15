@@ -1,5 +1,6 @@
 package com.netcracker.service;
 
+import com.netcracker.api.BookService;
 import com.netcracker.model.Book;
 import com.netcracker.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class BookService {
+public class BookServiceImpi implements BookService {
     @Autowired
     BookRepository bookRepository;
 

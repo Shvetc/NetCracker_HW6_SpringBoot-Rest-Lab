@@ -1,9 +1,10 @@
 package com.netcracker.controller;
 
 import com.netcracker.exception.ResourceNotFoundException;
+import com.netcracker.getEntity.GetEntity;
 import com.netcracker.model.Shop;
 import com.netcracker.repository.ShopRepository;
-import com.netcracker.service.ShopService;
+import com.netcracker.service.ShopServiceImpi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,38 +19,41 @@ public class ShopController {
     ShopRepository shopRepository;
 
     @Autowired
-    ShopService shopService;
+    ShopServiceImpi shopServiceImpi;
 
     @DeleteMapping("/shop/{id}")
-    public String deleteShop(@PathVariable(value = "id") Integer id) throws ResourceNotFoundException {
-        shopRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Shop not found with id = " + id));
-        shopRepository.deleteById(id);
+    public ResponseEntity<String> deleteShop(@PathVariable(value = "id") Integer id) throws ResourceNotFoundException {
 
-        return "Shop with id = " + id + " deleted";
+        Shop shop = (Shop) GetEntity.getEntity(id, shopRepository);
+
+        shopRepository.deleteById(shop.getId());
+
+        return ResponseEntity.ok("Shop with id = " + id + "has deleted");
     }
 
     @PatchMapping("/shop/{id}")
-    public ResponseEntity<Shop> updateShopInPart(@PathVariable(value = "id") Integer id,
-                                                 @RequestBody Shop newInfoAboutShop) throws ResourceNotFoundException {
-        Shop shop = shopRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Shop not found with id = " + id));
+    public ResponseEntity<String> updateShopInPart(@PathVariable(value = "id") Integer id,
+                                                   @RequestBody Shop newInfoAboutShop) throws ResourceNotFoundException {
+        Shop shop = (Shop) GetEntity.getEntity(id, shopRepository);
 
         if (newInfoAboutShop.getName() != null)
             shop.setName(newInfoAboutShop.getName());
         if (newInfoAboutShop.getRegion() != null)
             shop.setRegion(newInfoAboutShop.getRegion());
-        if (newInfoAboutShop.getCommission() != null)
+        if (newInfoAboutShop.getCommission() >= 0)
             shop.setCommission(newInfoAboutShop.getCommission());
 
-        final Shop updatedShop = shopRepository.save(shop);
+        shopRepository.save(shop);
 
-        return ResponseEntity.ok(updatedShop);
+        return ResponseEntity.ok("Shop with id = " + id + "has updated");
     }
 
     @PostMapping("/shop")
-    public Shop addShop(@RequestBody Shop shop) {
-        return shopRepository.save(shop);
+    public ResponseEntity<String> addShop(@RequestBody Shop shop) {
+
+        shopRepository.save(shop);
+
+        return ResponseEntity.ok("Shop with customer =" + shop.getName() + "has added");
     }
 
     @GetMapping("/shop")
@@ -58,34 +62,30 @@ public class ShopController {
     }
 
     @GetMapping("/shop/{id}")
-    public ResponseEntity<Shop> getShopById(@PathVariable(value = "id") Integer id)
-            throws ResourceNotFoundException {
+    public ResponseEntity<Shop> getShopById(@PathVariable(value = "id") Integer id) throws ResourceNotFoundException {
 
-        Shop shop = shopRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Shop not found with id = " + id)
-        );
+        Shop shop = (Shop) GetEntity.getEntity(id, shopRepository);
 
         return ResponseEntity.ok().body(shop);
     }
 
     @PutMapping("/shop/{id}")
-    public ResponseEntity<Shop> updateShop(@PathVariable(value = "id") Integer id,
+    public ResponseEntity<String> updateShop(@PathVariable(value = "id") Integer id,
                                            @RequestBody Shop newInfoAboutShop) throws ResourceNotFoundException {
-        Shop shop = shopRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Shop not found with id = " + id));
+        Shop shop = (Shop) GetEntity.getEntity(id, shopRepository);
 
         shop.setName(newInfoAboutShop.getName());
         shop.setRegion(newInfoAboutShop.getRegion());
         shop.setCommission(newInfoAboutShop.getCommission());
 
-        final Shop updatedShop = shopRepository.save(shop);
+        shopRepository.save(shop);
 
-        return ResponseEntity.ok(updatedShop);
+        return ResponseEntity.ok("Shop with id = " + id + "has fully updated");
     }
 
     @GetMapping(value = "/shop/shops_in_the_current_regions")
     public List<String> getNamesOfShopsInTheCurrentRegions(@RequestParam String region_1,
                                                            @RequestParam String region_2) {
-        return shopService.getNamesOfShopsInTheCurrentRegions(region_1, region_2);
+        return shopServiceImpi.getNamesOfShopsInTheCurrentRegions(region_1, region_2);
     }
 }
