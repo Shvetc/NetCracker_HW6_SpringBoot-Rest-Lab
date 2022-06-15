@@ -21,4 +21,11 @@ public class Book {
     private String storage;
 
     private Integer quantity;
+
+    public void copyData(Book book) {
+        name = book.getName();
+        cost = book.getCost();
+        storage = book.getStorage();
+        quantity = book.getQuantity();
+    }
 }

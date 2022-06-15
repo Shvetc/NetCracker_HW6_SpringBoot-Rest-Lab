@@ -1,18 +1,14 @@
 package com.netcracker.controller;
 
-import com.fasterxml.jackson.databind.util.ObjectBuffer;
 import com.netcracker.exception.ResourceNotFoundException;
 import com.netcracker.model.Customer;
 import com.netcracker.repository.CustomerRepository;
-import com.netcracker.service.RequestService;
+import com.netcracker.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/rest")
@@ -22,7 +18,7 @@ public class CustomerController {
     CustomerRepository customerRepository;
 
     @Autowired
-    RequestService requestService;
+    CustomerService customerService;
 
     @PostMapping("/customer")
     public Customer addCustomer(@RequestBody Customer customer) {
@@ -92,10 +88,10 @@ public class CustomerController {
         return customerRepository.getDifferentCustomersRegions();
     }
 
-    @GetMapping(value = "/customer/info_for_customers_lived_in_the_current_region")
-    public List<String> getLastNameAndDiscountOfCustomersLivedInTheCurrentRegion(@RequestParam(required = false, defaultValue = "Нижегородский") String region) {
 
-        return requestService.getLastNameAndDiscountOfCustomersLivedInTheCurrentRegion(region);
+    @GetMapping(value = "/customer/info_for_customers_lived_in_the_current_region")
+    public List<String> getLastNameAndDiscountOfCustomersLivedInTheCurrentRegion(@RequestParam String reg) {
+        return customerService.getLastNameAndDiscountOfCustomersLivedInTheCurrentRegion(reg);
     }
 
 }

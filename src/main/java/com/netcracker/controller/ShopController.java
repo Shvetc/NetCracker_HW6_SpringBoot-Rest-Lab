@@ -3,7 +3,7 @@ package com.netcracker.controller;
 import com.netcracker.exception.ResourceNotFoundException;
 import com.netcracker.model.Shop;
 import com.netcracker.repository.ShopRepository;
-import com.netcracker.service.RequestService;
+import com.netcracker.service.ShopService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +18,7 @@ public class ShopController {
     ShopRepository shopRepository;
 
     @Autowired
-    RequestService requestService;
+    ShopService shopService;
 
     @DeleteMapping("/shop/{id}")
     public String deleteShop(@PathVariable(value = "id") Integer id) throws ResourceNotFoundException {
@@ -84,10 +84,8 @@ public class ShopController {
     }
 
     @GetMapping(value = "/shop/shops_in_the_current_regions")
-    public List<String> getNamesOfShopsInTheCurrentRegions(@RequestParam(required = false, defaultValue = "Советский")
-                                                               String region_1,
-                                                           @RequestParam(required = false, defaultValue = "Сормовский")
-                                                                String region_2) {
-        return requestService.getNamesOfShopsInTheCurrentRegions(region_1, region_2);
+    public List<String> getNamesOfShopsInTheCurrentRegions(@RequestParam String region_1,
+                                                           @RequestParam String region_2) {
+        return shopService.getNamesOfShopsInTheCurrentRegions(region_1, region_2);
     }
 }

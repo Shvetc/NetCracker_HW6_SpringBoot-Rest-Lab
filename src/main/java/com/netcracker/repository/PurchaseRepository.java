@@ -3,6 +3,7 @@ package com.netcracker.repository;
 import com.netcracker.model.Purchase;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -28,13 +29,13 @@ public interface PurchaseRepository extends JpaRepository<Purchase, Integer> {
     @Query(value = "SELECT c.last_name, s.region, p.date\n" +
             "FROM purchase p, customer c, shop s\n" +
             "WHERE p.customer_id = c.id AND p.shop_id = s.id\n" +
-            "AND c.region = s.region AND to_number(to_char(date, 'mm'),'99') >= 3 ORDER BY c.last_name", nativeQuery = true)
-    List<List<String>> getReceivePurchaseInfoAfterMarch();
+            "AND c.region = s.region AND to_number(to_char(date, 'mm'),'99') >= :indMonth ORDER BY c.last_name", nativeQuery = true)
+    List<List<String>> getReceivePurchaseInfoAfterMonth(@Param("indMonth") Integer indMonth);
 
     @Query(value = "SELECT b.name, b.storage, p.quantity, p.price FROM purchase p, shop s, book b\n" +
             "WHERE p.book_id = b.id AND p.shop_id = s.id\n" +
-            "  AND b.quantity > 10 ORDER BY p.price", nativeQuery = true)
-    List<List<String>> getDataOnThePurchaseOfBooksPurchasedInTheStorageRegion();
+            "  AND b.quantity > :count ORDER BY p.price", nativeQuery = true)
+    List<List<String>> getDataOnThePurchaseOfBooksPurchasedInTheStorageRegion(@Param("count") Integer count);
 
 
 }

@@ -9,9 +9,7 @@ import com.netcracker.repository.BookRepository;
 import com.netcracker.repository.CustomerRepository;
 import com.netcracker.repository.PurchaseRepository;
 import com.netcracker.repository.ShopRepository;
-import com.netcracker.service.RequestService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,9 +26,6 @@ public class PurchaseController {
 
     @Autowired
     CustomerRepository customerRepository;
-
-    @Autowired
-    RequestService requestService;
 
     @Autowired
     ShopRepository shopRepository;
@@ -145,19 +140,17 @@ public class PurchaseController {
     }
 
     @GetMapping("/purchase/shop_revenue")
-    public List<List<String>> getInfoAboutShopsRevenue(@RequestParam(required = false, defaultValue = "5000") Double cost) {
+    public List<List<String>> getInfoAboutShopsRevenue(@RequestParam Double cost) {
         return purchaseRepository.getInfoAboutShopsRevenue(cost);
     }
 
     @GetMapping("/purchase/get_info_about_purchase_in_the_month")
-    public List<List<String>> getReceivePurchaseInfoAfterMarch() {
-        return purchaseRepository.getReceivePurchaseInfoAfterMarch();
+    public List<List<String>> getReceivePurchaseInfoAfterMarch(@RequestParam  Integer indMonth) {
+        return purchaseRepository.getReceivePurchaseInfoAfterMonth(indMonth);
     }
 
     @GetMapping("/purchase/data_on_the_purchase_of_books")
-    public List<List<String>> getDataOnThePurchaseOfBooksPurchasedInTheStorageRegion() {
-        return purchaseRepository.getDataOnThePurchaseOfBooksPurchasedInTheStorageRegion();
+    public List<List<String>> getDataOnThePurchaseOfBooksPurchasedInTheStorageRegion(@RequestParam Integer count) {
+        return purchaseRepository.getDataOnThePurchaseOfBooksPurchasedInTheStorageRegion(count);
     }
-
-
 }

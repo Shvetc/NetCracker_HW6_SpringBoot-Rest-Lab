@@ -3,7 +3,7 @@ package com.netcracker.controller;
 import com.netcracker.exception.ResourceNotFoundException;
 import com.netcracker.model.Book;
 import com.netcracker.repository.BookRepository;
-import com.netcracker.service.RequestService;
+import com.netcracker.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +18,7 @@ public class BookController {
     BookRepository bookRepository;
 
     @Autowired
-    RequestService requestService;
+    BookService bookService;
 
     @DeleteMapping("/book/{id}")
     public ResponseEntity<String> deleteBook(@PathVariable(value = "id") Integer id) throws ResourceNotFoundException {
@@ -31,9 +31,10 @@ public class BookController {
 
     @PatchMapping("/book/{id}")
     public ResponseEntity<Book> updateBookInPart(@PathVariable(value = "id") Integer id,
-                                                    @RequestBody Book newInfoAboutBook) throws ResourceNotFoundException {
+                                                 @RequestBody Book newInfoAboutBook) throws ResourceNotFoundException {
         Book book = bookRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(
                 "Book not found with id =" + id));
+
 
         if (newInfoAboutBook.getName() != null)
             book.setName(newInfoAboutBook.getName());
@@ -76,10 +77,7 @@ public class BookController {
         Book book = bookRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Book not found with id = " + id));
 
-        book.setName(newInfoAboutBook.getName());
-        book.setQuantity(newInfoAboutBook.getQuantity());
-        book.setStorage(newInfoAboutBook.getStorage());
-        book.setCost(newInfoAboutBook.getCost());
+        book.copyData(newInfoAboutBook);
 
         final Book updatedBook = bookRepository.save(book);
 
@@ -88,13 +86,13 @@ public class BookController {
 
     @GetMapping("/book/different_names_and_prices")
     public Map<String, Double> getDifferentBookNamesAndPrices(){
-        return  requestService.getDifferentNamesOfBooksAndThemPrice();
+        return  bookService.getDifferentNamesOfBooksAndThemPrice();
     }
 
     @GetMapping("/book/names_prices_by_word_or_price")
-    public List<String> getNamesBookAndPricesByWordOrPrice(@RequestParam(required = false, defaultValue = "Windows") String word,
-                                                           @RequestParam(required = false, defaultValue = "20000") Double price)
+    public List<String> getNamesBookAndPricesByWordOrPrice(@RequestParam String word,
+                                                           @RequestParam Double price)
     {
-        return requestService.getNamesBookAndPricesByWordOrPrice(word, price);
+        return bookService.getNamesBookAndPricesByWordOrPrice(word, price);
     }
 }
